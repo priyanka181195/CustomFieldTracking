@@ -1,0 +1,77 @@
+<template>
+    <lightning-card title="Field Change History">
+        <!-- Container for the entire form -->
+        <div
+            class="slds-grid slds-wrap slds-gutters slds-p-horizontal_small slds-m-top_medium"
+        >
+            <!-- Object and Field selection in one line -->
+            <div class="slds-col slds-size_1-of-2 slds-p-horizontal_small">
+                <lightning-combobox
+                    name="objectPicker"
+                    label="Select Object"
+                    value={selectedObject}
+                    options={objectOptions}
+                    placeholder="Choose an object..."
+                    onchange={handleObjectChange}
+                >
+                </lightning-combobox>
+            </div>
+
+            <div class="slds-col slds-size_1-of-2 slds-p-horizontal_small">
+                <lightning-combobox
+                    name="fieldPicker"
+                    label="Field Name"
+                    value={selectedField}
+                    options={fieldOptions}
+                    placeholder="Choose a field..."
+                    onchange={handleFieldChange}
+                >
+                </lightning-combobox>
+            </div>
+
+            <!-- Start Date and End Date in one line -->
+            <div class="slds-col slds-size_1-of-2 slds-p-horizontal_small">
+                <lightning-input
+                    type="date"
+                    label="Start Date"
+                    value={startDate}
+                    onchange={handleStartDateChange}
+                >
+                </lightning-input>
+            </div>
+
+            <div class="slds-col slds-size_1-of-2 slds-p-horizontal_small">
+                <lightning-input
+                    type="date"
+                    label="End Date"
+                    value={endDate}
+                    onchange={handleEndDateChange}
+                >
+                </lightning-input>
+            </div>
+
+            <!-- Button with spacing -->
+            <div
+                class="slds-col slds-size_1-of-1 slds-p-horizontal_small slds-m-top_large"
+            >
+                <lightning-button
+                    variant="brand"
+                    label="Filter"
+                    onclick={handleFilter}
+                ></lightning-button>
+            </div>
+        </div>
+
+        <!-- Datatable, visible only after button is pressed -->
+        <template if:true={isDatatableVisible}>
+            <lightning-datatable
+                key-field="Id"
+                data={fieldChangeRecords}
+                columns={columns}
+                hide-checkbox-column="true"
+                class="slds-p-horizontal_small slds-p-vertical_small slds-m-top_large"
+            >
+            </lightning-datatable>
+        </template>
+    </lightning-card>
+</template>
