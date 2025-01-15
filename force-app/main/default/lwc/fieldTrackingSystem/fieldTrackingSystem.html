@@ -9,6 +9,7 @@
                 <lightning-combobox
                     name="objectPicker"
                     label="Select Object"
+                    field-level-help="List of Objects whose fields have been changed"
                     value={selectedObject}
                     options={objectOptions}
                     placeholder="Choose an object..."
@@ -22,6 +23,7 @@
                     name="fieldPicker"
                     label="Field Name"
                     value={selectedField}
+                    field-level-help="Changed/Tracked fields based on the selected object"
                     options={fieldOptions}
                     placeholder="Choose a field..."
                     onchange={handleFieldChange}
@@ -29,7 +31,6 @@
                 </lightning-combobox>
             </div>
 
-            <!-- Start Date and End Date in one line -->
             <div class="slds-col slds-size_1-of-2 slds-p-horizontal_small">
                 <lightning-input
                     type="date"
@@ -50,14 +51,28 @@
                 </lightning-input>
             </div>
 
-            <!-- Button with spacing -->
+            <template if:true={isDateError}>
+                <div
+                    class="slds-text-color_error slds-m-top_small slds-p-horizontal_small"
+                >
+                    End date cannot be earlier than start date.
+                </div>
+            </template>
+
+            <!-- Buttons for filtering and clearing -->
             <div
                 class="slds-col slds-size_1-of-1 slds-p-horizontal_small slds-m-top_large"
             >
                 <lightning-button
                     variant="brand"
-                    label="Filter"
+                    label="Fetch Field(s) Changes"
                     onclick={handleFilter}
+                ></lightning-button>
+
+                <lightning-button
+                    label="Clear Filters"
+                    class="slds-m-left_small"
+                    onclick={handleClearFilters}
                 ></lightning-button>
             </div>
         </div>
@@ -66,12 +81,19 @@
         <template if:true={isDatatableVisible}>
             <lightning-datatable
                 key-field="Id"
-                data={fieldChangeRecords}
+                data={changes.data}
                 columns={columns}
                 hide-checkbox-column="true"
                 class="slds-p-horizontal_small slds-p-vertical_small slds-m-top_large"
             >
             </lightning-datatable>
+        </template>
+
+        <!-- Display message if no changes are found -->
+        <template if:true={noChangesFound}>
+            <div class="slds-text-align_center slds-m-top_large">
+                No changes found for the selected criteria.
+            </div>
         </template>
     </lightning-card>
 </template>

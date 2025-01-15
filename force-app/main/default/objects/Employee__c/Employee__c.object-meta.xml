@@ -143,24 +143,24 @@
     <allowInChatterGroups>false</allowInChatterGroups>
     <compactLayoutAssignment>SYSTEM</compactLayoutAssignment>
     <deploymentStatus>Deployed</deploymentStatus>
-    <description>Tracks the Field Tracking Changes</description>
+    <description>Details of the Employees of the company</description>
     <enableActivities>false</enableActivities>
-    <enableBulkApi>false</enableBulkApi>
+    <enableBulkApi>true</enableBulkApi>
     <enableFeeds>false</enableFeeds>
     <enableHistory>false</enableHistory>
     <enableLicensing>false</enableLicensing>
     <enableReports>true</enableReports>
     <enableSearch>false</enableSearch>
-    <enableSharing>false</enableSharing>
-    <enableStreamingApi>false</enableStreamingApi>
+    <enableSharing>true</enableSharing>
+    <enableStreamingApi>true</enableStreamingApi>
     <externalSharingModel>Private</externalSharingModel>
-    <label>Field Tracking Log</label>
+    <label>Employee</label>
     <nameField>
-        <displayFormat>FTL-{0000}</displayFormat>
-        <label>Field Tracking Log Name</label>
+        <displayFormat>EMP-{0000}</displayFormat>
+        <label>Employee Name</label>
         <type>AutoNumber</type>
     </nameField>
-    <pluralLabel>Field Tracking Logs</pluralLabel>
+    <pluralLabel>Employees</pluralLabel>
     <searchLayouts></searchLayouts>
     <sharingModel>ReadWrite</sharingModel>
     <visibility>Public</visibility>

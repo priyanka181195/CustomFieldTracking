@@ -4,55 +4,22 @@ import getAllSObjects from '@salesforce/apex/FieldChangeLogController.getAllSObj
 import getFields from '@salesforce/apex/FieldChangeLogController.getFields';
 
 export default class FieldTrackingSystem extends LightningElement {
-    @track startDate = '';
-    @track endDate = '';
+    @track startDate;
+    @track endDate;
 
     @track objectOptions = [];
     @track selectedObject = '';
 
     @track fieldOptions = [];
     @track selectedField = '';
-    @track isDatatableVisible = false; // Controls datatable visibility
+    @track isDatatableVisible = false;
+    @track noChangesFound = false;
+    @track isDateError = false; // Track date error
 
     @track changes = {
         data: null,
         error: null
     };
-
-    connectedCallback() {
-        this.fetchObjects();
-    }
-
-    fetchObjects() {
-        getAllSObjects()
-            .then((result) => {
-                this.objectOptions = result;
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-    }
-
-    handleObjectChange(event) {
-        this.selectedObject = event.detail.value;
-        this.fetchFields(this.selectedObject);
-    }
-
-    fetchFields(objectName) {
-        getFields({ sObjectName: objectName })
-            .then((result) => {
-                if (result && result.length > 0) {
-                    this.fieldOptions = result;
-                }
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-    }
-
-    handleFieldChange(event) {
-        this.selectedField = event.detail.value;
-    }
 
     columns = [
         { label: 'Object Name', fieldName: 'Object_Name__c', type: 'text' },
@@ -68,31 +35,90 @@ export default class FieldTrackingSystem extends LightningElement {
         }
     ];
 
+    connectedCallback() {
+        this.fetchObjects();
+    }
+
+    async fetchObjects() {
+        try {
+            this.objectOptions = await getAllSObjects();
+        } catch (error) {
+            console.error('Error fetching SObjects:', error);
+        }
+    }
+
+    handleObjectChange(event) {
+        this.selectedObject = event.detail.value;
+        this.fetchFields(this.selectedObject);
+    }
+
+    async fetchFields(objectName) {
+        try {
+            const result = await getFields({ sObjectName: objectName });
+            if (result && result.length > 0) {
+                this.fieldOptions = result;
+            }
+        } catch (error) {
+            console.error('Error fetching fields:', error);
+        }
+    }
+
+    handleFieldChange(event) {
+        this.selectedField = event.detail.value;
+    }
+
     handleStartDateChange(event) {
         this.startDate = event.target.value;
     }
 
     handleEndDateChange(event) {
         this.endDate = event.target.value;
+        this.validateDates();
     }
 
-    handleFetchChanges() {
-        this.isDatatableVisible = true;
-        getFieldChanges({
-            objectName: this.selectedObject,
-            fieldName: this.selectedField,
-            startDate: this.startDate,
-            endDate: this.endDate
-        })
-            .then((result) => {
-                this.changes.data = result;
-                this.changes.error = null;
-            })
-            .catch((error) => {
-                this.changes.error = error.body
-                    ? error.body.message
-                    : error.message;
-                this.changes.data = null;
+    validateDates() {
+        if (this.startDate && this.endDate && this.endDate < this.startDate) {
+            this.isDateError = true;
+        } else {
+            this.isDateError = false;
+        }
+    }
+
+    async handleFilter() {
+        if (this.isDateError) {
+            // Do not proceed if there's a date error
+            return;
+        }
+
+        try {
+            const result = await getFieldChanges({
+                objectName: this.selectedObject,
+                fieldName: this.selectedField,
+                startDate: this.startDate,
+                endDate: this.endDate
             });
+
+            this.isDatatableVisible = false;
+            this.noChangesFound = false;
+
+            if (result && result.length > 0) {
+                this.changes.data = result;
+                this.isDatatableVisible = true; // Show datatable if changes are found
+            } else {
+                this.noChangesFound = true; // Set message flag if no changes
+            }
+        } catch (error) {
+            console.error('Error fetching changes:', error);
+        }
+    }
+
+    handleClearFilters() {
+        this.selectedObject = '';
+        this.selectedField = '';
+        this.startDate = null;
+        this.endDate = null;
+        this.isDatatableVisible = false;
+        this.noChangesFound = false;
+        this.isDateError = false;
     }
 }
