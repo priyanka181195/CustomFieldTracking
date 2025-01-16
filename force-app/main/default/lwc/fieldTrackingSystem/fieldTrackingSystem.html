@@ -65,7 +65,7 @@
             >
                 <lightning-button
                     variant="brand"
-                    label="Fetch Field(s) Changes"
+                    label="Fetch Tracked Field(s) Changes"
                     onclick={handleFilter}
                 ></lightning-button>
 
@@ -77,16 +77,35 @@
             </div>
         </div>
 
-        <!-- Datatable, visible only after button is pressed -->
         <template if:true={isDatatableVisible}>
             <lightning-datatable
                 key-field="Id"
-                data={changes.data}
+                data={paginatedData}
                 columns={columns}
                 hide-checkbox-column="true"
                 class="slds-p-horizontal_small slds-p-vertical_small slds-m-top_large"
-            >
-            </lightning-datatable>
+            ></lightning-datatable>
+
+            <!-- Pagination Controls -->
+            <div class="slds-grid slds-m-top_medium slds-grid_align-spread">
+                <lightning-button
+                    label="Previous Page"
+                    onclick={handlePrevPage}
+                    disabled={isPrevDisabled}
+                    class="slds-m-left_small"
+                ></lightning-button>
+
+                <div class="slds-m-horizontal_small">
+                    Page {currentPage} of {totalPages}
+                </div>
+
+                <lightning-button
+                    label="Next Page"
+                    onclick={handleNextPage}
+                    disabled={isNextDisabled}
+                    class="slds-m-right_small"
+                ></lightning-button>
+            </div>
         </template>
 
         <!-- Display message if no changes are found -->

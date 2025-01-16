@@ -6,7 +6,7 @@ public with sharing class FieldChangeLogController {
         Date startDate,
         Date endDate
     ) {
-        String baseQuery = 'SELECT Id, Object_Name__c, Record_Id__c, Field_Name__c, Old_Value__c, New_Value__c, Changed_By__c, Change_Date_Time__c FROM Field_Tracking_Log__c WHERE Id != null';
+        String baseQuery = 'SELECT Id, Object_Name__c, Record_Id__c, Field_Name__c, Old_Value__c, New_Value__c, Changed_By__c, Change_Date_Time__c, Is_High_Priority__c FROM Field_Tracking_Log__c WHERE Id != null';
 
         List<String> filters = new List<String>();
 

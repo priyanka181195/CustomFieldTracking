@@ -5,6 +5,7 @@ public class EmailService {
      * @param highPriorityChanges List of high-priority field changes.
      * @param toAddresses List of recipient email addresses.
      */
+
     public static void sendHighPriorityChangeEmail(
         List<Field_Tracking_Log__c> highPriorityChanges,
         List<String> toAddresses
@@ -15,8 +16,34 @@ public class EmailService {
         }
 
         if (toAddresses == null || toAddresses.isEmpty()) {
-            System.debug('No email addresses provided.');
-            return;
+            System.debug(
+                'No email addresses provided. Attempting to find fallback.'
+            );
+
+            // Attempt to use system admin email
+            try {
+                User adminUser = [
+                    SELECT Email
+                    FROM User
+                    WHERE
+                        Profile.Name = 'System Administrator'
+                        AND IsActive = TRUE
+                    LIMIT 1
+                ];
+                if (adminUser != null && adminUser.Email != null) {
+                    toAddresses = new List<String>{ adminUser.Email };
+                }
+            } catch (Exception e) {
+                System.debug('No active system admin found or query failed.');
+            }
+
+            // Final fallback: Log and exit if no fallback is available
+            if (toAddresses == null || toAddresses.isEmpty()) {
+                System.debug(
+                    'No fallback email addresses available. Email not sent'
+                );
+                return;
+            }
         }
 
         // Build the HTML email body
@@ -66,7 +93,6 @@ public class EmailService {
             );
         } catch (Exception e) {
             System.debug('Failed to send email: ' + e.getMessage());
-            // Optionally, handle the exception (e.g., log to a custom object)
         }
     }
 }

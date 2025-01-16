@@ -40,8 +40,25 @@ public class TrackFieldChangesTest {
             Change_Date_Time__c = System.today().addDays(-90) // 90 days old log
         );
         insert log;
+
+        // Insert Opportunity record
+        Opportunity opp1 = new Opportunity(
+            Name = 'Test Opportunity',
+            StageName = 'Prospecting',
+            CloseDate = System.today().addMonths(1),
+            Amount = 5000
+        );
+        insert opp1;
+
+        // Insert Employee__c record
+        Employee__c emp1 = new Employee__c(
+            First_Name__c = 'Chandler',
+            Last_Name__c = 'Bing'
+        );
+        insert emp1;
     }
 
+    //Testing Account Trigger
     @isTest
     static void testTrackFieldChangesForAccount() {
         // Mock tracked fields (without any high-priority fields)
@@ -62,8 +79,8 @@ public class TrackFieldChangesTest {
 
         // Ensure that the queued job runs
         Test.startTest();
-        update accounts; // This will fire the trigger and enqueue the job
-        Test.stopTest(); // Ensures that the queued job runs and completes
+        update accounts;
+        Test.stopTest();
 
         // Verify logs
         List<Field_Tracking_Log__c> logs = [
@@ -90,6 +107,7 @@ public class TrackFieldChangesTest {
         );
     }
 
+    //Testing Contact Trigger
     @isTest
     static void testTrackFieldChangesForContact() {
         // Mock tracked fields (without any high-priority fields for Contact)
@@ -126,6 +144,181 @@ public class TrackFieldChangesTest {
             2,
             logs.size(),
             'Two logs should be created for Contact'
+        );
+    }
+
+    //Testing Opportunity Trigger
+    @isTest
+    static void testOpportunityFieldTracking() {
+        // Mock tracked fields for Opportunity with Amount as high priority
+        Map<String, Map<String, Boolean>> mockTrackedFields = new Map<String, Map<String, Boolean>>{
+            'opportunity' => new Map<String, Boolean>{
+                'Amount' => true // High priority
+            }
+        };
+        FieldChangeTracker.setMockTrackedFields(mockTrackedFields);
+
+        // Query the Opportunity record
+        Opportunity opp = [SELECT Id, Amount FROM Opportunity LIMIT 1];
+
+        // Update the opportunity amount to trigger tracking
+        opp.Amount = 10000;
+        Test.startTest();
+        update opp;
+        Test.stopTest();
+
+        // Verify logs
+        List<Field_Tracking_Log__c> logs = [
+            SELECT
+                Field_Name__c,
+                Old_Value__c,
+                New_Value__c,
+                Is_High_Priority__c
+            FROM Field_Tracking_Log__c
+            WHERE Object_Name__c = 'Opportunity'
+        ];
+        System.assertEquals(
+            1,
+            logs.size(),
+            'One log should be created for Opportunity'
+        );
+        System.assertEquals(
+            'Amount',
+            logs[0].Field_Name__c,
+            'Field name should match'
+        );
+        System.assertEquals(
+            '5000.00',
+            logs[0].Old_Value__c,
+            'Old value should be "5000.00"'
+        );
+        System.assertEquals(
+            '10000.00',
+            logs[0].New_Value__c,
+            'New value should be "10000.00"'
+        );
+        System.assert(
+            logs[0].Is_High_Priority__c,
+            'Change should be marked as high priority'
+        );
+    }
+
+    //Testing Employee Trigger
+    @isTest
+    static void testEmployeeFieldTracking() {
+        // Mock tracked fields for Employee__c without any high-priority fields
+        Map<String, Map<String, Boolean>> mockTrackedFields = new Map<String, Map<String, Boolean>>{
+            'employee__c' => new Map<String, Boolean>{
+                'First_Name__c' => false // Not high priority
+            }
+        };
+        FieldChangeTracker.setMockTrackedFields(mockTrackedFields);
+
+        // Query the Employee__c record
+        Employee__c emp = [SELECT Id, First_Name__c FROM Employee__c LIMIT 1];
+
+        // Update the first name to trigger tracking
+        emp.First_Name__c = 'Chandler Muriel';
+        Test.startTest();
+        update emp;
+        Test.stopTest();
+
+        // Verify logs
+        List<Field_Tracking_Log__c> logs = [
+            SELECT
+                Field_Name__c,
+                Old_Value__c,
+                New_Value__c,
+                Is_High_Priority__c
+            FROM Field_Tracking_Log__c
+            WHERE Object_Name__c = 'Employee__c'
+        ];
+        System.assertEquals(
+            1,
+            logs.size(),
+            'One log should be created for Employee__c'
+        );
+        System.assertEquals(
+            'First_Name__c',
+            logs[0].Field_Name__c,
+            'Field name should match'
+        );
+        System.assertEquals(
+            'Chandler',
+            logs[0].Old_Value__c,
+            'Old value should be "Chandler"'
+        );
+        System.assertEquals(
+            'Chandler Muriel',
+            logs[0].New_Value__c,
+            'New value should be "Chandler Muriel"'
+        );
+        System.assert(
+            !logs[0].Is_High_Priority__c,
+            'Change should not be marked as high priority'
+        );
+    }
+    @isTest
+    static void testProjectFieldTracking() {
+        // Mock tracked fields with 'Type__c' marked as high-priority (true)
+        Map<String, Map<String, Boolean>> mockTrackedFields = new Map<String, Map<String, Boolean>>{
+            'project__c' => new Map<String, Boolean>{
+                'Type__c' => true // 'Rating' is tracked and marked as high-priority
+            }
+        };
+        FieldChangeTracker.setMockTrackedFields(mockTrackedFields);
+
+        // Create a Project record
+        Project__c proj = new Project__c(
+            Project_Title__c = 'Test Project title',
+            Type__c = 'Critical'
+        );
+        insert proj;
+
+        // Update the Project record to trigger field tracking
+        proj.Type__c = 'Major';
+        update proj;
+
+        // Ensure the queued job runs
+        Test.startTest();
+        Test.stopTest();
+
+        // Query the Field_Tracking_Log__c object to verify the log was created
+        List<Field_Tracking_Log__c> logs = [
+            SELECT
+                Id,
+                Field_Name__c,
+                Old_Value__c,
+                New_Value__c,
+                Is_High_Priority__c
+            FROM Field_Tracking_Log__c
+            WHERE Record_Id__c = :proj.Id
+        ];
+
+        // Assertions
+        System.assertEquals(
+            1,
+            logs.size(),
+            'There should be one change log entry'
+        );
+        System.assertEquals(
+            'Type__c',
+            logs[0].Field_Name__c,
+            'Field name should match'
+        );
+        System.assertEquals(
+            'Critical',
+            logs[0].Old_Value__c,
+            'Old value should be "Critical"'
+        );
+        System.assertEquals(
+            'Major',
+            logs[0].New_Value__c,
+            'New value should be "Major"'
+        );
+        System.assert(
+            logs[0].Is_High_Priority__c,
+            'The change should be marked as high priority'
         );
     }
 

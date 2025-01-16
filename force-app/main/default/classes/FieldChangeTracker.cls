@@ -1,5 +1,6 @@
+//Field Change Tracking and a utility class for all triggers
 public with sharing class FieldChangeTracker {
-    // Map to store tracked fields by object (object name -> map of field and high-priority status)
+    //Map to store tracked fields by object
     @testVisible
     private static Map<String, Map<String, Boolean>> trackedFieldsMap;
 
@@ -19,6 +20,7 @@ public with sharing class FieldChangeTracker {
         }
     }
 
+    //Setting mockTrackFields for test methods of metadata
     @testVisible
     static void setMockTrackedFields(
         Map<String, Map<String, Boolean>> mockMap
@@ -26,6 +28,7 @@ public with sharing class FieldChangeTracker {
         trackedFieldsMap = mockMap;
     }
 
+    //Generic method to get field changes. This is called by every object's trigger
     public static void trackFieldChanges(
         List<SObject> newList,
         List<SObject> oldList,
@@ -68,7 +71,7 @@ public with sharing class FieldChangeTracker {
                         : '';
                     log.Changed_By__c = UserInfo.getUserId();
                     log.Change_Date_Time__c = System.now();
-                    log.Is_High_Priority__c = trackedFields.get(fieldApiName); // Use high-priority flag
+                    log.Is_High_Priority__c = trackedFields.get(fieldApiName);
 
                     changeLogs.add(log);
                 }
@@ -92,10 +95,7 @@ public with sharing class FieldChangeTracker {
         return !oldValue.equals(newValue);
     }
 
-    /**
-     * Retrieves all active email recipients from the Custom Metadata Type.
-     * @return List of recipient email addresses.
-     */
+    //Retrieves all active email recipients from the Custom Metadata Type.
     public static List<String> getRecipientEmails() {
         List<String> recipientEmails = new List<String>();
 
@@ -103,7 +103,7 @@ public with sharing class FieldChangeTracker {
         List<Email_Recipient__mdt> recipients = [
             SELECT Recipient_Email__c
             FROM Email_Recipient__mdt
-            WHERE DeveloperName = 'Admin_Team'
+            WHERE DeveloperName = 'Dev_Team'
         ];
 
         for (Email_Recipient__mdt recipient : recipients) {

@@ -4,24 +4,35 @@ import getAllSObjects from '@salesforce/apex/FieldChangeLogController.getAllSObj
 import getFields from '@salesforce/apex/FieldChangeLogController.getFields';
 
 export default class FieldTrackingSystem extends LightningElement {
+    //variables for dates
     @track startDate;
     @track endDate;
+    @track isDateError = false; // Track date error
 
+    //variables for SObject
     @track objectOptions = [];
     @track selectedObject = '';
 
+    //variables for Fields
     @track fieldOptions = [];
     @track selectedField = '';
+
     @track isDatatableVisible = false;
     @track noChangesFound = false;
-    @track isDateError = false; // Track date error
 
     @track changes = {
         data: null,
         error: null
     };
 
+    // Pagination properties
+    @track currentPage = 1;
+    @track pageSize = 20; // Number of records per page
+    @track totalPages = 0;
+    @track paginatedData = [];
+
     columns = [
+        { label: 'Number', fieldName: 'rowNumber', type: 'number' },
         { label: 'Object Name', fieldName: 'Object_Name__c', type: 'text' },
         { label: 'Record Id', fieldName: 'Record_Id__c', type: 'text' },
         { label: 'Field Name', fieldName: 'Field_Name__c', type: 'text' },
@@ -32,6 +43,11 @@ export default class FieldTrackingSystem extends LightningElement {
             label: 'Change Date/Time',
             fieldName: 'Change_Date_Time__c',
             type: 'date'
+        },
+        {
+            label: 'Is High Priority?',
+            fieldName: 'Is_High_Priority__c',
+            type: 'checkbox'
         }
     ];
 
@@ -39,6 +55,7 @@ export default class FieldTrackingSystem extends LightningElement {
         this.fetchObjects();
     }
 
+    //Retrieving Object's data
     async fetchObjects() {
         try {
             this.objectOptions = await getAllSObjects();
@@ -52,6 +69,7 @@ export default class FieldTrackingSystem extends LightningElement {
         this.fetchFields(this.selectedObject);
     }
 
+    //Retrieving Fields' data
     async fetchFields(objectName) {
         try {
             const result = await getFields({ sObjectName: objectName });
@@ -84,6 +102,7 @@ export default class FieldTrackingSystem extends LightningElement {
         }
     }
 
+    //Method to handle selected Filters
     async handleFilter() {
         if (this.isDateError) {
             // Do not proceed if there's a date error
@@ -102,7 +121,16 @@ export default class FieldTrackingSystem extends LightningElement {
             this.noChangesFound = false;
 
             if (result && result.length > 0) {
-                this.changes.data = result;
+                this.changes.data = result.map((item, index) => {
+                    return { ...item, rowNumber: index + 1 };
+                });
+
+                // Setup pagination
+                this.totalPages = Math.ceil(
+                    this.changes.data.length / this.pageSize
+                );
+                this.currentPage = 1;
+                this.updatePaginatedData();
                 this.isDatatableVisible = true; // Show datatable if changes are found
             } else {
                 this.noChangesFound = true; // Set message flag if no changes
@@ -112,9 +140,42 @@ export default class FieldTrackingSystem extends LightningElement {
         }
     }
 
+    // Method to update paginated data based on current page
+    updatePaginatedData() {
+        const startIndex = (this.currentPage - 1) * this.pageSize;
+        const endIndex = startIndex + this.pageSize;
+        this.paginatedData = this.changes.data.slice(startIndex, endIndex);
+    }
+
+    // Handle next page
+    handleNextPage() {
+        if (this.currentPage < this.totalPages) {
+            this.currentPage++;
+            this.updatePaginatedData();
+        }
+    }
+
+    // Handle previous page
+    handlePrevPage() {
+        if (this.currentPage > 1) {
+            this.currentPage--;
+            this.updatePaginatedData();
+        }
+    }
+    //getters for Pagination
+    get isPrevDisabled() {
+        return this.currentPage === 1;
+    }
+
+    get isNextDisabled() {
+        return this.currentPage === this.totalPages;
+    }
+
+    //Method to clear all the selected Filters
     handleClearFilters() {
         this.selectedObject = '';
         this.selectedField = '';
+        this.fieldOptions = [];
         this.startDate = null;
         this.endDate = null;
         this.isDatatableVisible = false;
