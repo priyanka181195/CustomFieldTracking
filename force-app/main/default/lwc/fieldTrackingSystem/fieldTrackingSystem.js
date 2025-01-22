@@ -173,13 +173,27 @@ export default class FieldTrackingSystem extends LightningElement {
 
     //Method to clear all the selected Filters
     handleClearFilters() {
+        // Reset selected filters
         this.selectedObject = '';
         this.selectedField = '';
         this.fieldOptions = [];
         this.startDate = null;
         this.endDate = null;
+
+        // Reset data visibility flags
         this.isDatatableVisible = false;
         this.noChangesFound = false;
         this.isDateError = false;
+
+        // Reset changes to its default structure
+        this.changes = {
+            data: null,
+            error: null
+        };
+
+        // Reset pagination variables
+        this.currentPage = 1;
+        this.totalPages = 0;
+        this.paginatedData = [];
     }
 }

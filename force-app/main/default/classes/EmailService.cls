@@ -1,10 +1,5 @@
 public class EmailService {
-    /**
-     * Sends an email notification for high-priority field changes.
-     *
-     * @param highPriorityChanges List of high-priority field changes.
-     * @param toAddresses List of recipient email addresses.
-     */
+    //Sends an email notification for high-priority field changes.
 
     public static void sendHighPriorityChangeEmail(
         List<Field_Tracking_Log__c> highPriorityChanges,

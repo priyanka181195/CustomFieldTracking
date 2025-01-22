@@ -85,6 +85,18 @@ public with sharing class FieldChangeTracker {
                 System.debug('Failed to enqueue job: ' + e.getMessage());
             }
         }
+
+        //~Batchable Apex
+        // if (!changeLogs.isEmpty()) {
+        //     try {
+        //         FieldChangeBatchJob batchJob = new FieldChangeBatchJob(
+        //             changeLogs
+        //         );
+        //         Database.executeBatch(batchJob, 200); // Adjust batch size as needed
+        //     } catch (Exception e) {
+        //         System.debug('Failed to enqueue batch job: ' + e.getMessage());
+        //     }
+        // }
     }
 
     private static Boolean valuesDiffer(Object oldValue, Object newValue) {

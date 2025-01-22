@@ -2,7 +2,7 @@ Enhanced Salesforce Custom Field Tracking System:
 
 This project has a custom Field Tracking System in Salesforce that monitors the fields across multiple Standard and Custom Objects. These objects and their monitored fields have been added in the Custom Metadata configuration so as to track the fields and observe its changed values. Some fields that are considered as High Priority across the objects have also been monitored and any change in these fields will trigger a real-time notification across the platform and the users will be informed through email about the change. A Field Tracking Log record will also be created for the tracked fields that are changed. A dashboard and reports can be created for these and played around. This custom Field Tracking System(FTS) displays the records of the changed fields with and without filters specified. This ensures that this FTS is not using any built in Field History Tracking capability of Salesforce.
 
-Please find the complete guide to the Field Tracking System(FTS) in this documentation. 
+Please find the complete guide to the Field Tracking System(FTS) in "Custom Field Tracking System.pdf" file. 
 This guide has access to the data model, data configurations, a detailed explanation, and ideas for enchancements.
 
 Set up Instructions:
